@@ -3,6 +3,8 @@ package com.aliothmoon.maameow.overlay.screensaver
 import android.app.Activity
 import android.content.Context
 import android.graphics.PixelFormat
+import android.graphics.Rect
+import android.os.Build
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
@@ -47,6 +49,7 @@ class ScreenSaverOverlayManager(
     override val savedStateRegistry: SavedStateRegistry get() = savedStateRegistryController.savedStateRegistry
 
     fun show(activity: Activity? = null) {
+        if (_showing.value) return
         activity?.window?.let { window ->
             val controller = WindowCompat.getInsetsController(window, window.decorView)
             controller.hide(WindowInsetsCompat.Type.systemBars())
@@ -70,6 +73,14 @@ class ScreenSaverOverlayManager(
         val layoutParams = createLayoutParams()
         try {
             windowManager.addView(composeView, layoutParams)
+            // 排除底部手势区域，防止系统后退手势拦截横向滑动
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                composeView?.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+                    val barHeightPx = (v.resources.displayMetrics.density * 120).toInt()
+                    v.systemGestureExclusionRects =
+                        listOf(Rect(0, v.height - barHeightPx, v.width, v.height))
+                }
+            }
             lifecycleRegistry.currentState = Lifecycle.State.STARTED
             lifecycleRegistry.currentState = Lifecycle.State.RESUMED
             _showing.value = true
@@ -80,32 +91,30 @@ class ScreenSaverOverlayManager(
     }
 
     fun hide() {
-        // 恢复系统栏
         insetsController?.show(WindowInsetsCompat.Type.systemBars())
         insetsController = null
+
+        val view = composeView ?: return
+        composeView = null
+        _showing.value = false
 
         try {
             lifecycleRegistry.currentState = Lifecycle.State.STARTED
             lifecycleRegistry.currentState = Lifecycle.State.CREATED
-
-            windowManager.removeView(composeView)
+            windowManager.removeView(view)
         } catch (e: Exception) {
             Timber.e(e, "Failed to hide screen saver overlay")
-        } finally {
-            composeView = null
-            _showing.value = false
         }
     }
 
     private fun createLayoutParams(): WindowManager.LayoutParams {
         val type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        @Suppress("DEPRECATION")
         val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                // WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                0x00080000
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
 
         return WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
