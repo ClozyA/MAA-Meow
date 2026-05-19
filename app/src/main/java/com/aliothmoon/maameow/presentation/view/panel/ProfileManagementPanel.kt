@@ -20,12 +20,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -124,7 +127,7 @@ fun ProfileManagementPanel(
                         isDragging = isDragging,
                         editingName = if (isEditing) editingName else profile.name,
                         canDelete = profiles.size > 1,
-                        dragHandleModifier = Modifier.longPressDraggableHandle(),
+                        modifier = Modifier.longPressDraggableHandle(),
                         onSwitch = { onSwitch(profile.id) },
                         onStartRename = {
                             editingProfileId = profile.id
@@ -174,7 +177,7 @@ private fun ProfileCard(
     isDragging: Boolean,
     editingName: String,
     canDelete: Boolean,
-    dragHandleModifier: Modifier,
+    modifier: Modifier = Modifier,
     onSwitch: () -> Unit,
     onStartRename: () -> Unit,
     onRenameChange: (String) -> Unit,
@@ -182,6 +185,8 @@ private fun ProfileCard(
     onDuplicate: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -204,27 +209,13 @@ private fun ProfileCard(
         )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // 主行: 拖动手柄 + RadioButton + 名称 + 操作按钮
+            // 主行: RadioButton + 名称 + 操作按钮，长按整行拖动排序
             Row(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 拖动手柄: 仅此处长按拖动, 避免与卡片 clickable 切换冲突
-                Box(
-                    modifier = dragHandleModifier
-                        .size(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.DragIndicator,
-                        contentDescription = stringResource(R.string.panel_profile_drag_handle),
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
                 RadioButton(
                     selected = isActive,
                     onClick = onSwitch,
@@ -288,32 +279,58 @@ private fun ProfileCard(
                 }
             }
 
-            // 编辑行: 向下展开的重命名输入框
+            // 编辑区: 向下展开，包含重命名输入框和 Profile ID 复制
             AnimatedVisibility(
                 visible = isEditing,
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp)
                         .padding(bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    ITextField(
-                        value = editingName,
-                        onValueChange = { newText ->
-                            if (newText.length <= 20) onRenameChange(newText)
-                        },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        shape = RoundedCornerShape(4.dp),
-                        onImeAction = onRenameConfirm
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    TextButton(onClick = onRenameConfirm) {
-                        Text(stringResource(R.string.common_confirm), style = MaterialTheme.typography.labelMedium)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        ITextField(
+                            value = editingName,
+                            onValueChange = { newText ->
+                                if (newText.length <= 20) onRenameChange(newText)
+                            },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            shape = RoundedCornerShape(4.dp),
+                            onImeAction = onRenameConfirm
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        TextButton(onClick = onRenameConfirm) {
+                            Text(stringResource(R.string.common_confirm), style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "ID: ${profile.id}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = {
+                                clipboardManager.setText(AnnotatedString(profile.id))
+                                Toast.makeText(context, context.getString(R.string.panel_profile_id_copied), Toast.LENGTH_SHORT).show()
+                            },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.ContentCopy,
+                                contentDescription = stringResource(R.string.panel_profile_copy_id),
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }

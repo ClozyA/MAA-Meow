@@ -16,6 +16,8 @@ data class ScheduledExecutionRequest(
     companion object {
         const val ACTION_SHOW_SCHEDULE_EXECUTION =
             "com.aliothmoon.maameow.action.SHOW_SCHEDULE_EXECUTION"
+        const val ACTION_LAUNCH_PROFILE =
+            "com.aliothmoon.maameow.action.LAUNCH_PROFILE"
         const val EXTRA_REQUEST_ID = "extra_request_id"
         const val EXTRA_STRATEGY_ID = "extra_strategy_id"
         const val EXTRA_STRATEGY_NAME = "extra_strategy_name"
@@ -42,6 +44,19 @@ data class ScheduledExecutionRequest(
                 strategyName = strategyName,
                 profileId = profileId,
                 scheduledTimeMs = scheduledTimeMs,
+                forceStart = intent.getBooleanExtra(EXTRA_FORCE_START, false),
+            )
+        }
+
+        fun fromExternalIntent(intent: Intent?): ScheduledExecutionRequest? {
+            if (intent?.action != ACTION_LAUNCH_PROFILE) return null
+            val profileId = intent.getStringExtra(EXTRA_PROFILE_ID) ?: return null
+            return ScheduledExecutionRequest(
+                requestId = UUID.randomUUID().toString(),
+                strategyId = "",
+                strategyName = "外部触发",
+                profileId = profileId,
+                scheduledTimeMs = System.currentTimeMillis(),
                 forceStart = intent.getBooleanExtra(EXTRA_FORCE_START, false),
             )
         }

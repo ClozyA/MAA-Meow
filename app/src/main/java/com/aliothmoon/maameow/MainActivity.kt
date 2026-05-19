@@ -73,9 +73,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dispatchScheduledLaunchIntent(intent: Intent?) {
-        ScheduledExecutionRequest.fromIntent(intent)?.let { request ->
-            backgroundTaskViewModel.onScheduledLaunch(request)
-        }
+        val request = ScheduledExecutionRequest.fromIntent(intent)
+            ?: ScheduledExecutionRequest.fromExternalIntent(intent)
+        request?.let { backgroundTaskViewModel.onScheduledLaunch(it) }
     }
 
     private fun doObserveKeepScreenOn() {

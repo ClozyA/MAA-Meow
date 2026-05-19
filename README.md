@@ -51,6 +51,7 @@
 | 文档 | 说明 |
 |---|---|
 | [构建指南](docs/BUILDING.md) | 从源码构建 APK |
+| [外部自动化集成](docs/AUTOMATION.md) | 通过 Intent / am 命令与 MacroDroid、Tasker 联动 |
 | [Roadmap](docs/ROADMAP.md) | 功能规划与进度 |
 | [第三方代码声明](docs/THIRD_PARTY_NOTICES.md) | 引用的开源组件及许可证 |
 

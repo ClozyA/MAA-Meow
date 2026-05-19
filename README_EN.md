@@ -51,6 +51,7 @@ One-click automation for all daily tasks, powered by image recognition
 | Document | Description |
 |---|---|
 | [Build Guide](docs/BUILDING.md) | Build APK from source |
+| [External Automation](docs/AUTOMATION.md) | Launch profiles via Intent / am with MacroDroid or Tasker |
 | [Roadmap](docs/ROADMAP.md) | Feature plans & progress |
 | [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md) | Open-source components & licenses |
 
