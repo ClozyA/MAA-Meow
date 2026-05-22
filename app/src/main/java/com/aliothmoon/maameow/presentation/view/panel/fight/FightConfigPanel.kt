@@ -511,6 +511,25 @@ private fun GroupedStageSelectionSection(
     val stage1Open = isStageOpenToday(config.stage1)
     val annihilationOptions = localizedAnnihilationOptions()
 
+    // 当前执行关卡（对齐 WPF StagePlanTip）
+    val executingStage = remember(config.stage1, config.stage2, config.stage3, config.stage4, config.useAlternateStage, stageMap) {
+        if (config.stage1.isEmpty()) return@remember ""
+        val candidates = if (config.useAlternateStage) {
+            listOf(config.stage1, config.stage2, config.stage3, config.stage4)
+        } else {
+            listOf(config.stage1)
+        }.filter { it.isNotEmpty() }
+        candidates.firstOrNull { stageMap[it]?.isOpenToday == true } ?: candidates.firstOrNull() ?: ""
+    }
+    val defaultStageLabel = stringResource(R.string.panel_fight_stage_reset_current)
+    val stagePlanTipText = buildString {
+        append(stringResource(R.string.panel_fight_stage_plan_tip, executingStage.ifEmpty { defaultStageLabel }))
+        if (config.customStageCode) {
+            append("\n\n")
+            append(stringResource(R.string.panel_fight_stage_selection_tip))
+        }
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
@@ -522,19 +541,15 @@ private fun GroupedStageSelectionSection(
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium
                 )
-                if (config.customStageCode) {
-                    ExpandableTipIcon(
-                        expanded = tipExpanded,
-                        onExpandedChange = { tipExpanded = it }
-                    )
-                }
-            }
-            if (config.customStageCode) {
-                ExpandableTipContent(
-                    visible = tipExpanded,
-                    tipText = stringResource(R.string.panel_fight_stage_selection_tip)
+                ExpandableTipIcon(
+                    expanded = tipExpanded,
+                    onExpandedChange = { tipExpanded = it }
                 )
             }
+            ExpandableTipContent(
+                visible = tipExpanded,
+                tipText = stagePlanTipText
+            )
         }
 
         // 首选关卡

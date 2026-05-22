@@ -12,10 +12,10 @@ import kotlinx.serialization.json.putJsonArray
 /**
  * 生息演算配置
  *
- * 参数严格对齐 MaaWpfGui v6.10.3:
+ * 参数严格对齐 MaaWpfGui v6.10.5:
  * - mode 字段含义由 theme 决定,采用 flags 风格编码以避免 Tales / RelaunchAnchor 值冲突:
  *   - Tales: 0 = ProsperityNoSave, 1 = ProsperityInSave
- *   - RelaunchAnchor: 16 (1<<4) = RA-1, 32 (2<<4) = RA-15
+ *   - RelaunchAnchor: 16 (1<<4) = RA-1, 32 (2<<4) = RA-15, 48 (3<<4) = RA-4
  * - WPF: ReclamationTask.Mode 默认 ProsperityInSave (= 1)
  */
 @Serializable
@@ -37,9 +37,10 @@ data class ReclamationConfig(
         // RelaunchAnchor 模式值(v6.10.3 起改为 flags 编码,对应 WPF/MaaCore RelaunchAnchorMode)
         const val MODE_RA1 = 1 shl 4   // 16
         const val MODE_RA15 = 2 shl 4  // 32
+        const val MODE_RA4 = 3 shl 4   // 48
 
         val TALES_MODE_VALUES = listOf(MODE_PROSPERITY_NO_SAVE, MODE_PROSPERITY_IN_SAVE)
-        val RELAUNCH_ANCHOR_MODE_VALUES = listOf(MODE_RA1, MODE_RA15)
+        val RELAUNCH_ANCHOR_MODE_VALUES = listOf(MODE_RA1, MODE_RA4, MODE_RA15)
 
         // 向后兼容旧引用(Tales 0/1 值列表)
         @Deprecated("Use TALES_MODE_VALUES", ReplaceWith("TALES_MODE_VALUES"))

@@ -162,21 +162,18 @@ fun ReclamationConfigPanel(config: ReclamationConfig, onConfigChange: (Reclamati
                         when {
                             isRelaunchAnchor -> {
                                 item {
-                                    val isRa15 = config.mode == ReclamationConfig.MODE_RA15
-                                    val containerColor = if (isRa15) {
-                                        MaterialTheme.colorScheme.errorContainer
-                                    } else {
-                                        MaterialTheme.colorScheme.tertiaryContainer
+                                    val containerColor = when (config.mode) {
+                                        ReclamationConfig.MODE_RA15 -> MaterialTheme.colorScheme.errorContainer
+                                        else -> MaterialTheme.colorScheme.tertiaryContainer
                                     }
-                                    val onContainerColor = if (isRa15) {
-                                        MaterialTheme.colorScheme.onErrorContainer
-                                    } else {
-                                        MaterialTheme.colorScheme.onTertiaryContainer
+                                    val onContainerColor = when (config.mode) {
+                                        ReclamationConfig.MODE_RA15 -> MaterialTheme.colorScheme.onErrorContainer
+                                        else -> MaterialTheme.colorScheme.onTertiaryContainer
                                     }
-                                    val tipRes = if (isRa15) {
-                                        R.string.panel_reclamation_relaunch_anchor_tip_ra15
-                                    } else {
-                                        R.string.panel_reclamation_relaunch_anchor_tip_ra1
+                                    val tipRes = when (config.mode) {
+                                        ReclamationConfig.MODE_RA15 -> R.string.panel_reclamation_relaunch_anchor_tip_ra15
+                                        ReclamationConfig.MODE_RA4 -> R.string.panel_reclamation_relaunch_anchor_tip_ra4
+                                        else -> R.string.panel_reclamation_relaunch_anchor_tip_ra1
                                     }
                                     Surface(
                                         modifier = Modifier.fillMaxWidth(),
@@ -401,6 +398,7 @@ private fun localizedRelaunchAnchorModeOptions(): List<Pair<Any, String>> {
     return ReclamationConfig.RELAUNCH_ANCHOR_MODE_VALUES.map { mode ->
         mode to when (mode) {
             ReclamationConfig.MODE_RA1 -> stringResource(R.string.panel_reclamation_mode_ra1)
+            ReclamationConfig.MODE_RA4 -> stringResource(R.string.panel_reclamation_mode_ra4)
             ReclamationConfig.MODE_RA15 -> stringResource(R.string.panel_reclamation_mode_ra15)
             else -> mode.toString()
         }
