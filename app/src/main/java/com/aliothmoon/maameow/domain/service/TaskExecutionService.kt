@@ -98,6 +98,8 @@ class TaskExecutionService : Service() {
     }
 
     override fun onDestroy() {
+        // 外部 stopService 与 StateFlow 收集存在竞态；此处兜底确保 Live Update 通知被清除。
+        stopForeground(STOP_FOREGROUND_REMOVE)
         observeJob?.cancel()
         serviceScope.cancel()
         super.onDestroy()
