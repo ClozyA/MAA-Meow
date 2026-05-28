@@ -1,7 +1,8 @@
 [versions]
 # Build Tools
-agp = "8.13.2"
+agp = "9.2.0"
 kotlin = "2.3.10"
+ksp = "2.3.9"
 
 # AndroidX Core
 coreKtx = "1.17.0"
@@ -10,7 +11,6 @@ activityCompose = "1.12.4"
 appcompat = "1.7.1"
 kotlinpoet = "2.2.0"
 kotlinpoetKsp = "2.2.0"
-symbolProcessingApi = "2.3.4"
 lifecycle = "2.10.0"
 
 # Compose
@@ -87,7 +87,7 @@ fastjson2 = { group = "com.alibaba.fastjson2", name = "fastjson2", version.ref =
 device-compat = { group = "com.github.getActivity", name = "DeviceCompat", version.ref = "deviceCompat" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoetKsp" }
-symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "symbolProcessingApi" }
+symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 xx-permissions = { group = "com.github.getActivity", name = "XXPermissions", version.ref = "xxPermissions" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
@@ -107,5 +107,8 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

@@ -3,11 +3,10 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    kotlin("plugin.serialization") version libs.versions.kotlin.get()
-    id("kotlin-parcelize")
-    id("com.google.devtools.ksp") version "2.3.4"
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.ksp)
 }
 
 val localProperties = Properties().apply {
