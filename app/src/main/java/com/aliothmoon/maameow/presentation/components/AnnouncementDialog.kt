@@ -3,6 +3,7 @@ package com.aliothmoon.maameow.presentation.components
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,12 +21,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -37,35 +40,60 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.runtime.snapshotFlow
 import com.aliothmoon.maameow.R
+import kotlinx.coroutines.flow.distinctUntilChanged
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.delay
 
-private const val CONFIRM_COUNTDOWN = 5
+/** 勾选"不再显示"前需停留的秒数 */
+private const val STAY_SECONDS_REQUIRED = 5
 
 @Composable
 fun AnnouncementDialog(
     imageAssetPath: String?,
     markdown: String,
-    onConfirmed: () -> Unit,
+    onDismiss: (dontShowAgain: Boolean) -> Unit,
 ) {
-    var confirmed by remember { mutableStateOf(false) }
-    var countdown by remember { mutableIntStateOf(0) }
+    // 是否已滚动至底部
+    var scrolledToBottom by remember { mutableStateOf(false) }
+    // 已停留秒数
+    var elapsedSeconds by remember { mutableIntStateOf(0) }
+    // "不再显示"勾选状态
+    var dontShowAgain by remember { mutableStateOf(false) }
 
-    LaunchedEffect(confirmed) {
-        if (confirmed) {
-            countdown = CONFIRM_COUNTDOWN
-            while (countdown > 0) {
-                delay(1000)
-                countdown--
+    val scrollState = rememberScrollState()
+
+    // 检测是否滚动到底部（内容不足一屏时 maxValue==0 视为已到底）
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.value >= scrollState.maxValue }
+            .distinctUntilChanged()
+            .collect { atBottom ->
+                if (atBottom) {
+                    scrolledToBottom = true
+                }
             }
+    }
+
+    // 停留计时器：滚动到底部后才开始计时，使倒计时提示得以显示
+    LaunchedEffect(scrolledToBottom) {
+        if (!scrolledToBottom) return@LaunchedEffect
+        elapsedSeconds = 0
+        repeat(STAY_SECONDS_REQUIRED) {
+            delay(1000)
+            elapsedSeconds++
         }
+    }
+
+    // 勾选框是否可启用
+    val canCheck by remember {
+        derivedStateOf { scrolledToBottom && elapsedSeconds >= STAY_SECONDS_REQUIRED }
     }
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -97,6 +125,7 @@ fun AnnouncementDialog(
             shadowElevation = 8.dp,
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
+                // 标题栏
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -128,11 +157,12 @@ fun AnnouncementDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // 公告内容（可滚动）
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(screenHeight * 0.55f)
-                        .verticalScroll(rememberScrollState()),
+                        .verticalScroll(scrollState),
                 ) {
                     if (imageBitmap != null) {
                         Image(
@@ -153,27 +183,70 @@ fun AnnouncementDialog(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                val canConfirm = confirmed && countdown == 0
+                // "不再显示"勾选框
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .toggleable(
+                            value = dontShowAgain,
+                            enabled = canCheck,
+                            role = Role.Checkbox,
+                            onValueChange = { dontShowAgain = it },
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Checkbox(
+                        checked = dontShowAgain,
+                        onCheckedChange = null,
+                    )
+                    Text(
+                        text = stringResource(R.string.announcement_dont_show_again),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (canCheck) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        },
+                    )
+                }
+
+                // 未满足条件时显示提示
+                if (!canCheck) {
+                    if (!scrolledToBottom) {
+                        // 尚未滚动到底部（无论 elapsedSeconds 是多少）
+                        Text(
+                            text = stringResource(R.string.announcement_scroll_to_bottom_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 48.dp),
+                        )
+                    } else {
+                        // 已滚动到底部，但时间未到
+                        val remaining = maxOf(0, STAY_SECONDS_REQUIRED - elapsedSeconds)
+                        Text(
+                            text = stringResource(
+                                R.string.announcement_dont_show_again_hint,
+                                remaining,
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 48.dp),
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 确认按钮（无限制，始终可点击）
                 Button(
-                    onClick = {
-                        when {
-                            !confirmed -> confirmed = true
-                            canConfirm -> onConfirmed()
-                        }
-                    },
-                    enabled = !confirmed || canConfirm,
+                    onClick = { onDismiss(dontShowAgain) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.large,
                 ) {
-                    Text(
-                        when {
-                            !confirmed -> stringResource(R.string.announcement_read_button)
-                            countdown > 0 -> stringResource(R.string.announcement_confirm_ok) + " ($countdown)"
-                            else -> stringResource(R.string.announcement_confirm_ok)
-                        }
-                    )
+                    Text(stringResource(R.string.announcement_confirm))
                 }
             }
         }
