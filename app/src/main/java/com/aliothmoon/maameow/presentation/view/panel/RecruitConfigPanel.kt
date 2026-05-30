@@ -155,8 +155,8 @@ fun RecruitConfigPanel(
                                 // 无招聘许可时继续尝试刷新Tags
                                 ForceRefreshSection(config, onConfigChange)
 
-                                // 手动确认1星
-                                NotChooseLevel1Section(config, onConfigChange)
+                                // 保留指定词条
+                                PreserveTagSection(config, onConfigChange)
 
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 
@@ -463,15 +463,26 @@ private fun ForceRefreshSection(
 }
 
 /**
- * 不选一星
- * WPF: CheckBox with NotChooseLevel1 binding + TooltipBlock
+ * 保留指定词条
+ * 对应 WPF: PreserveTagEnabled / PreserveTagList (#16586)
+ *
+ * 注意 name-space：数据源同为 recruitTags，但本节存储的是「中文规范名」(map 的 key)，
+ * 而非 AutoRecruitFirstListSection 的「客户端名」(pair.second / client)。
+ * 原因：core 对 preserve_tags 按中文 TagId 直接比较（find_first_of(tag_ids, preserve_tags)），
+ * first_tags 才是按本地化名做子串匹配。对齐 WPF：
+ *   - _autoRecruitTagShowList(first)   → Value = tag.Client
+ *   - _autoRecruitSkipTagShowList(skip) → Value = tag.Key
+ * 默认值 "支援机械" 即中文规范 key（WPF LegacyRobotTag），非中文客户端同样生效。
+ * 启用后使用 preserve_tags 参数，不再输出 skip_robot。
  */
 @Composable
-private fun NotChooseLevel1Section(
+private fun PreserveTagSection(
     config: RecruitConfig,
-    onConfigChange: (RecruitConfig) -> Unit
+    onConfigChange: (RecruitConfig) -> Unit,
+    resourceDataManager: ResourceDataManager = koinInject()
 ) {
     var tipExpanded by remember { mutableStateOf(false) }
+    val recruitTags by resourceDataManager.recruitTags.collectAsStateWithLifecycle()
 
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -482,12 +493,12 @@ private fun NotChooseLevel1Section(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Checkbox(
-                checked = config.notChooseLevel1,
-                onCheckedChange = { onConfigChange(config.copy(notChooseLevel1 = it)) },
+                checked = config.preserveTagEnabled,
+                onCheckedChange = { onConfigChange(config.copy(preserveTagEnabled = it)) },
                 modifier = Modifier.size(20.dp)
             )
             Text(
-                text = stringResource(R.string.panel_recruit_not_choose_level1),
+                text = stringResource(R.string.panel_recruit_preserve_tag_enabled),
                 style = MaterialTheme.typography.bodyMedium
             )
             ExpandableTipIcon(
@@ -497,8 +508,79 @@ private fun NotChooseLevel1Section(
         }
         ExpandableTipContent(
             visible = tipExpanded,
-            tipText = stringResource(R.string.panel_recruit_not_choose_level1_tip)
+            tipText = stringResource(R.string.panel_recruit_preserve_tag_enabled_tip)
         )
+
+        if (config.preserveTagEnabled) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(6.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Column(
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        recruitTags.forEach { (tagKey, pair) ->
+                            val display = pair.first
+                            // 存中文规范名 tagKey（map 的 key），对齐 core preserve_tags 与 WPF
+                            val isSelected = config.preserveTagList.contains(tagKey)
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    val newList = if (isSelected) {
+                                        config.preserveTagList - tagKey
+                                    } else {
+                                        config.preserveTagList + tagKey
+                                    }
+                                    onConfigChange(config.copy(preserveTagList = newList))
+                                },
+                                label = {
+                                    Text(
+                                        text = display,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        maxLines = 1
+                                    )
+                                },
+                                leadingIcon = if (isSelected) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                } else null,
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                    labelColor = MaterialTheme.colorScheme.onSurface,
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                border = null,
+                                modifier = Modifier.height(28.dp)
+                            )
+                        }
+                    }
+
+                    if (config.preserveTagList.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.panel_recruit_selected_count, config.preserveTagList.size),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

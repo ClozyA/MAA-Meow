@@ -884,14 +884,8 @@
     <string name="panel_recruit_selected_count">已选 %1$d 个</string>
     <string name="panel_recruit_refresh_level3">自动刷新3星Tags</string>
     <string name="panel_recruit_force_refresh">无招聘许可时继续尝试刷新 Tags</string>
-    <string name="panel_recruit_not_choose_level1">保留 1 星词条并跳过该栏位</string>
-    <string name="panel_recruit_not_choose_level1_tip">勾选时识别到 1 星词条时跳过该次招募栏位（保留默认 9 小时），未勾选时将忽略 1 星词条</string>
     <string name="panel_recruit_preserve_tag_enabled">保留指定词条</string>
-    <string name="panel_recruit_preserve_tag_enabled_tip">公招时不选择列表中的词条，默认保留"支援机械"，避免影响高星 Tag 组合。启用后将以 preserve_tags 参数替代"跳过 1 星"</string>
-    <string name="panel_recruit_preserve_tag_list_title">保留词条列表</string>
-    <string name="panel_recruit_preserve_tag_add_hint">添加词条…</string>
-    <string name="panel_recruit_preserve_tag_add">添加</string>
-    <string name="panel_recruit_preserve_tag_empty_hint">列表为空，所有词条均会被正常选择</string>
+    <string name="panel_recruit_preserve_tag_enabled_tip">识别到任一已选词条时跳过该次招募并保留该栏位；留空时不保留任何词条。</string>
     <string name="panel_recruit_choose_level3">自动确认 3 星</string>
     <string name="panel_recruit_choose_level4">自动确认 4 星</string>
     <string name="panel_recruit_choose_level5">自动确认 5 星</string>

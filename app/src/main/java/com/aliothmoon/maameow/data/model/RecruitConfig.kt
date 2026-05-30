@@ -73,11 +73,22 @@ data class RecruitConfig(
     // ============ 高级设置 - 稀有度选择 ============
 
     /**
-     * 不选一星
-     * 对应 WPF: NotChooseLevel1
-     * true: 手动选择一星（即不自动确认一星）
+     * 启用保留词条功能
+     * 对应 WPF: PreserveTagEnabled (#16586)
+     * 启用后输出 preserve_tags 词条列表，否则输出空数组（对齐 WPF AsstRecruitTask.Serialize）
+     * 默认关闭（对齐 WPF 全新用户）；preserveTagList 已预填"支援机械"，勾选即生效
+     *
+     * 注: 取代旧的 notChooseLevel1（已于对齐 WPF v6.11 时移除，不做老配置迁移，
+     *     ignoreUnknownKeys 会静默忽略旧字段，升级后默认关闭）
      */
-    val notChooseLevel1: Boolean = true,
+    val preserveTagEnabled: Boolean = false,
+
+    /**
+     * 保留词条列表（公招时不选择列表中的Tag）
+     * 对应 WPF: PreserveTagList (#16586)
+     * 默认保留"支援机械"，避免影响高星Tag组合识别
+     */
+    val preserveTagList: List<String> = listOf("支援机械"),
 
     /**
      * 自动选择三星
@@ -242,7 +253,13 @@ data class RecruitConfig(
             if (useExpedited) {
                 put("expedite_times", maxRecruitTimes)
             }
-            put("skip_robot", notChooseLevel1)
+            // 对齐 WPF AsstRecruitTask.Serialize：总是输出 preserve_tags
+            // 启用时输出保留词条列表，否则输出空数组
+            put("preserve_tags", buildJsonArray {
+                if (preserveTagEnabled) {
+                    preserveTagList.forEach { add(JsonPrimitive(it)) }
+                }
+            })
             put("extra_tags_mode", selectExtraTags.toIntOrNull() ?: 0)
             if (autoRecruitFirstList.isNotEmpty()) {
                 put("first_tags", buildJsonArray {
