@@ -7,6 +7,7 @@ import com.aliothmoon.maameow.constant.MaaFiles.ASSET_VERSION_FILE
 import com.aliothmoon.maameow.constant.MaaFiles.CACHE
 import com.aliothmoon.maameow.constant.MaaFiles.DEBUG
 import com.aliothmoon.maameow.constant.MaaFiles.MAA
+import com.aliothmoon.maameow.constant.MaaFiles.OVERRIDES
 import com.aliothmoon.maameow.constant.MaaFiles.RESOURCE
 import com.aliothmoon.maameow.constant.MaaFiles.VERSION_FILE
 import timber.log.Timber
@@ -55,6 +56,22 @@ class MaaPathConfig(private val context: Context) {
     val debugDir: String by lazy {
         File(rootDir, DEBUG).absolutePath
     }
+
+    /**
+     * Android 特化覆盖目录（传给 AsstLoadResource 的 parentDir）
+     * 对应磁盘路径：{rootDir}/overrides/
+     * 加载链末位，优先级最高
+     */
+    val overridesDir: String by lazy {
+        File(rootDir, OVERRIDES).absolutePath
+    }
+
+    /**
+     * 覆盖用 tasks.json 文件路径
+     * {rootDir}/overrides/resource/tasks/tasks.json
+     */
+    val overrideTasksFile: File
+        get() = File(rootDir, "$OVERRIDES/$RESOURCE/tasks/tasks.json")
 
     /** version.json 路径 */
     private val versionFile: File

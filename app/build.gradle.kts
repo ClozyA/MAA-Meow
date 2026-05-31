@@ -196,6 +196,11 @@ dependencies {
     implementation(libs.reorderable)
     implementation(libs.compose.markdown)
 
+    // sora-editor：JSON 语法高亮编辑器（TextMate + darcula 主题）
+    implementation(platform(libs.bom))
+    implementation(libs.editor)
+    implementation(libs.editor.language.textmate)
+
     // Kotlin Serialization
     implementation(libs.kotlinx.serialization.json)
 

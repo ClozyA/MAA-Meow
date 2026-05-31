@@ -41,6 +41,7 @@ import com.aliothmoon.maameow.presentation.view.notification.NotificationSetting
 import com.aliothmoon.maameow.presentation.view.settings.ErrorLogView
 import com.aliothmoon.maameow.presentation.view.settings.LogHistoryView
 import com.aliothmoon.maameow.presentation.view.settings.SettingsView
+import com.aliothmoon.maameow.presentation.view.settings.TaskOverrideEditorView
 import com.aliothmoon.maameow.presentation.viewmodel.BackgroundTaskViewModel
 import com.aliothmoon.maameow.schedule.model.CountdownState
 import com.aliothmoon.maameow.schedule.ui.CountdownDialog
@@ -290,6 +291,24 @@ fun AppNavigation(
                         }
                     ) {
                         ScheduleTriggerLogView(navController = navController)
+                    }
+
+                    composable(
+                        route = Routes.TASK_OVERRIDE_EDITOR,
+                        enterTransition = {
+                            slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(350))
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(350))
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(initialOffsetX = { -it / 3 }, animationSpec = tween(350))
+                        },
+                        popExitTransition = {
+                            slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(350))
+                        }
+                    ) {
+                        TaskOverrideEditorView(navController = navController)
                     }
                 }
             }

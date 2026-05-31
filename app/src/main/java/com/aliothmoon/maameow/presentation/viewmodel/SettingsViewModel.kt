@@ -13,6 +13,7 @@ import com.aliothmoon.maameow.data.preferences.ConfigBackupManager
 import com.aliothmoon.maameow.data.preferences.TaskChainState
 import com.aliothmoon.maameow.data.resource.ResourceDataManager
 import com.aliothmoon.maameow.domain.models.RemoteBackend
+import com.aliothmoon.maameow.domain.service.MaaResourceLoader
 import com.aliothmoon.maameow.manager.PermissionManager
 import com.aliothmoon.maameow.manager.RemoteServiceManager
 import com.aliothmoon.maameow.utils.Misc
@@ -37,6 +38,7 @@ class SettingsViewModel(
     private val configBackupManager: ConfigBackupManager,
     private val taskChainState: TaskChainState,
     private val resourceDataManager: ResourceDataManager,
+    private val resourceLoader: MaaResourceLoader,
 ) : ViewModel() {
 
     // ========== 导入导出 ==========
@@ -212,6 +214,18 @@ class SettingsViewModel(
                 clientType = taskChainState.getClientType(),
                 displayLanguage = ResourceDataManager.displayLanguageCode(resolved)
             )
+        }
+    }
+
+    // Android 特化任务覆盖
+    val tasksOverrideEnabled: StateFlow<Boolean> = appSettingsManager.tasksOverrideEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setTasksOverrideEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            appSettingsManager.setTasksOverrideEnabled(enabled)
+            // 开关变更后重置加载状态，下次任务启动时按最新配置重新加载
+            resourceLoader.reset()
         }
     }
 }

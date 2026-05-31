@@ -56,4 +56,10 @@ data class AppSettings(
     @PrefKey(default = "") val announcementReadVersion: String = "",
 
     @PrefKey(default = "false") val forceFullscreenOnVirtualDisplay: String = "false",
+
+    /**
+     * 是否启用 Android 特化任务覆盖（overrides/resource/tasks/tasks.json）
+     * 启用后该目录作为最高优先级覆盖层，在加载链末位加载
+     */
+    @PrefKey(default = "false") val tasksOverrideEnabled: String = "false",
 )

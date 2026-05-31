@@ -431,6 +431,21 @@ class AppSettingsManager(private val context: Context) {
         }
     }
 
+    // Android 任务配置覆盖开关
+    val tasksOverrideEnabled: StateFlow<Boolean> = settings
+        .map { it.tasksOverrideEnabled.toBooleanStrictOrNull() ?: false }
+        .distinctUntilChanged()
+        .stateIn(
+            scope, SharingStarted.Eagerly,
+            initialSettings.tasksOverrideEnabled.toBooleanStrictOrNull() ?: false
+        )
+
+    suspend fun setTasksOverrideEnabled(enabled: Boolean) {
+        with(AppSettingsSchema) {
+            context.dataStore.edit { it[tasksOverrideEnabled] = enabled.toString() }
+        }
+    }
+
     // 长期公告已读版本
     val announcementReadVersion: StateFlow<String> = settings
         .map { it.announcementReadVersion }

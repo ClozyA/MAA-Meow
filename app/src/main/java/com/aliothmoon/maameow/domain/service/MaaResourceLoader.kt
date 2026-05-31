@@ -110,6 +110,10 @@ class MaaResourceLoader(
 
                     followUps.forEach { loadResIfExists(maa, it) }
 
+                    if (appSettings.tasksOverrideEnabled.value) {
+                        loadResIfExists(maa, pathConfig.overridesDir)
+                    }
+
                     _state.value = State.Ready
                     Result.success(Unit)
                 }

@@ -1,6 +1,8 @@
 package com.aliothmoon.maameow.domain.service
 
+import android.content.Context
 import com.aliothmoon.maameow.constant.MaaFiles.ASSET_DIR_NAME
+import com.aliothmoon.maameow.constant.MaaFiles.OVERRIDES_ASSET_TASKS
 import com.aliothmoon.maameow.data.config.MaaPathConfig
 import com.aliothmoon.maameow.data.datasource.AssetExtractor
 import com.aliothmoon.maameow.domain.state.ResourceInitState
@@ -12,8 +14,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
-
 class ResourceInitService(
+    private val context: Context,
     private val assetExtractor: AssetExtractor,
     private val pathConfig: MaaPathConfig
 ) {
@@ -48,7 +50,6 @@ class ResourceInitService(
                 resourceDir.mkdirs()
             }
 
-            // 执行提取
             val result = assetExtractor.extract(
                 assetDir = ASSET_DIR_NAME,
                 destDir = File(pathConfig.resourceDir),
@@ -64,6 +65,7 @@ class ResourceInitService(
             result.fold(
                 onSuccess = {
                     pathConfig.markAppVersion()
+                    doForceSyncOverridesTemplate()
                     Timber.i("资源初始化完成")
                     _state.value = ResourceInitState.Ready
                 },
@@ -74,6 +76,19 @@ class ResourceInitService(
         } catch (e: Exception) {
             Timber.e(e, "资源初始化失败")
             _state.value = ResourceInitState.Failed(e.message ?: "未知错误")
+        }
+    }
+
+    private fun doForceSyncOverridesTemplate() {
+        val dest = pathConfig.overrideTasksFile
+        runCatching {
+            dest.parentFile?.mkdirs()
+            context.assets.open(OVERRIDES_ASSET_TASKS).use { src ->
+                dest.outputStream().use { src.copyTo(it) }
+            }
+            Timber.d("overrides 模板已同步: ${dest.absolutePath}")
+        }.onFailure {
+            Timber.w(it, "overrides 模板同步失败，跳过")
         }
     }
 }

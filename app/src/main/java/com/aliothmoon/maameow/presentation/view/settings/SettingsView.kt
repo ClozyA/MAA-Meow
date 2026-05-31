@@ -33,6 +33,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +51,7 @@ import androidx.navigation.NavController
 import com.aliothmoon.maameow.BuildConfig
 import com.aliothmoon.maameow.R
 import com.aliothmoon.maameow.constant.DefaultDisplayConfig
+import com.aliothmoon.maameow.constant.Routes
 import com.aliothmoon.maameow.data.model.update.UpdateChannel
 import com.aliothmoon.maameow.data.preferences.AppSettingsManager
 import com.aliothmoon.maameow.domain.models.RemoteBackend
@@ -84,6 +88,7 @@ fun SettingsView(
     val skipShizukuCheck by viewModel.skipShizukuCheck.collectAsStateWithLifecycle()
     val deploymentWithPause by viewModel.deploymentWithPause.collectAsStateWithLifecycle()
     val forceFullscreenOnVirtualDisplay by viewModel.forceFullscreenOnVirtualDisplay.collectAsStateWithLifecycle()
+    val tasksOverrideEnabled by viewModel.tasksOverrideEnabled.collectAsStateWithLifecycle()
     val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val backgroundResolution by viewModel.backgroundResolution.collectAsStateWithLifecycle()
@@ -341,6 +346,29 @@ fun SettingsView(
                         checked = forceFullscreenOnVirtualDisplay,
                         onCheckedChange = { viewModel.setForceFullscreenOnVirtualDisplay(it) }
                     )
+                    SettingsDivider(contentColor)
+                    SettingSwitchItem(
+                        title = stringResource(R.string.settings_tasks_override_title),
+                        description = stringResource(R.string.settings_tasks_override_desc),
+                        contentColor = contentColor,
+                        checked = tasksOverrideEnabled,
+                        onCheckedChange = { viewModel.setTasksOverrideEnabled(it) }
+                    )
+                    AnimatedVisibility(
+                        visible = tasksOverrideEnabled,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()
+                    ) {
+                        Column {
+                            SettingsDivider(contentColor)
+                            SettingClickItem(
+                                title = stringResource(R.string.settings_tasks_override_edit_title),
+                                contentColor = contentColor
+                            ) {
+                                navController.navigate(Routes.TASK_OVERRIDE_EDITOR)
+                            }
+                        }
+                    }
                 }
             }
 
