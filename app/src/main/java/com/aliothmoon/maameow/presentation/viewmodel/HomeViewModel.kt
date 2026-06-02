@@ -450,9 +450,11 @@ class HomeViewModel(
     }
 
     private fun checkResolution(): Boolean {
-        val displayMetrics = application.resources.displayMetrics
-        val width = displayMetrics.widthPixels
-        val height = displayMetrics.heightPixels
+        // 不能用 application.resources.displayMetrics：application context 的 DisplayMetrics
+        // 不反映 setForcedDisplaySize 修改后的 forced size（在 Android 9 上持续返回原生物理分辨率
+        // 减去系统栏的值）。改用 Misc.getScreenSize，其底层走 Display.getRealMetrics /
+        // WindowMetrics.getBounds，能正确读到 IWindowManager 层的 forced size。
+        val (width, height) = Misc.getScreenSize(application)
 
         val longSide = maxOf(width, height)
         val shortSide = minOf(width, height)
