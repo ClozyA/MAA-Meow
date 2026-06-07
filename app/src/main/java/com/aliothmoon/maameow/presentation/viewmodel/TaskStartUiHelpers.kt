@@ -126,6 +126,10 @@ internal fun Context.resolveTaskStartFailureMessage(result: MaaCompositionServic
         is MaaCompositionService.StartResult.StartError -> {
             uiTextOf(R.string.task_start_error_start_failed)
         }
+
+        is MaaCompositionService.StartResult.ServiceConnecting -> {
+            uiTextOf(R.string.task_start_error_service_connecting)
+        }
     }
 }
 

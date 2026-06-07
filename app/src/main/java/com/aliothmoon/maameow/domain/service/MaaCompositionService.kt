@@ -22,6 +22,7 @@ import com.aliothmoon.maameow.maa.callback.MaaExecutionStateHolder
 import com.aliothmoon.maameow.maa.callback.SubTaskHandler
 import com.aliothmoon.maameow.maa.callback.TaskChainStatusTracker
 import com.aliothmoon.maameow.maa.task.MaaTaskParams
+import com.aliothmoon.maameow.manager.RemoteServiceManager
 import com.aliothmoon.maameow.manager.RemoteServiceManager.useRemoteService
 import com.aliothmoon.maameow.utils.Misc
 import kotlinx.coroutines.CompletableDeferred
@@ -126,6 +127,9 @@ class MaaCompositionService(
 
         /** 前台模式下检测到竖屏（高 > 宽），需要横屏才能运行 */
         data object PortraitOrientationError : StartResult()
+
+        /** 远程服务正在连接中，任务无法立即启动 */
+        data object ServiceConnecting : StartResult()
     }
 
     sealed class StopResult {
@@ -211,7 +215,27 @@ class MaaCompositionService(
         return result
     }
 
+    /** 服务尚未就绪，任务拒绝启动但不进入 ERROR 状态（服务本身没有故障） */
+    private suspend fun rejectStart(
+        message: String, sessionStatus: String, result: StartResult
+    ): StartResult {
+        setRunState(MaaExecutionState.IDLE)
+        sessionLogger.appendAndWait(message, LogLevel.WARNING)
+        sessionLogger.endSessionAndWait(sessionStatus)
+        return result
+    }
+
     private suspend fun checkPreconditions(mode: RunMode): StartResult? {
+        // 服务连接中时直接拒绝，避免与后台自动 load() 并发触发 LoadResource
+        val serviceState = RemoteServiceManager.state.value
+        if (serviceState is RemoteServiceManager.ServiceState.Connecting) {
+            return rejectStart(
+                "服务正在启动中，请稍后再试",
+                "SERVICE_CONNECTING",
+                StartResult.ServiceConnecting
+            )
+        }
+
         activityManager.runIfDirty { resourceLoader.load() }
         val loaded = resourceLoader.ensureLoaded()
         if (loaded.isFailure) {

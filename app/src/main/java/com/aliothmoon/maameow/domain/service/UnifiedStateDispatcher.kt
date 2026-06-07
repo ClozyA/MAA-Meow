@@ -85,11 +85,15 @@ class UnifiedStateDispatcher(
                 .collect { (serviceState, initState) ->
                     if (serviceState is RemoteServiceManager.ServiceState.Connected
                         && initState is ResourceInitState.Ready
-                        && resourceLoader.state.value is MaaResourceLoader.State.NotLoaded
                     ) {
-                        Timber.i("Service connected and resource initialized, loading resources")
-                        withContext(Dispatchers.IO) {
-                            resourceLoader.load()
+                        val loaderState = resourceLoader.state.value
+                        val shouldLoad = loaderState is MaaResourceLoader.State.NotLoaded
+                            || (loaderState is MaaResourceLoader.State.Failed && !loaderState.permanent)
+                        if (shouldLoad) {
+                            Timber.i("Service connected and resource initialized, loading resources")
+                            withContext(Dispatchers.IO) {
+                                resourceLoader.load()
+                            }
                         }
                     }
                 }
