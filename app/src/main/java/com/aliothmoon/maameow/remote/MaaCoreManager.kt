@@ -10,11 +10,14 @@ object MaaCoreManager {
     val MaaContext: MaaCoreLibrary? by lazy {
         runCatching {
             System.setProperty("jna.tmpdir", "/data/local/tmp")
+            RemoteBootTrace.mark("MAA_LOAD_BEGIN", "jna.tmpdir=/data/local/tmp")
             Ln.i("$TAG: Loading MaaCore...")
             Native.load("MaaCore", MaaCoreLibrary::class.java).also {
+                RemoteBootTrace.mark("MAA_LOAD_OK")
                 Ln.i("$TAG: MaaCore loaded successfully")
             }
         }.onFailure {
+            RemoteBootTrace.mark("MAA_LOAD_FAIL", "${it.javaClass.simpleName}: ${it.message}")
             Ln.e("$TAG: Failed to load MaaCore: ${it.message}")
             Ln.e(it.stackTraceToString())
         }.getOrNull()

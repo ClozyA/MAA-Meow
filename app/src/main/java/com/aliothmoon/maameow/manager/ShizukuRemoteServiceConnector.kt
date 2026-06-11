@@ -25,6 +25,7 @@ object ShizukuRemoteServiceConnector : RemoteServiceConnectorBackend {
         val args = createServiceArgs()
         val connection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                ServiceBootLogger.event("SHIZUKU_ON_CONNECTED", "name=$name binderNull=${binder == null}")
                 val binding = activeBinding
                 if (binding?.connection !== this) {
                     Timber.w("Ignoring stale Shizuku connection: %s", name)
@@ -42,6 +43,7 @@ object ShizukuRemoteServiceConnector : RemoteServiceConnectorBackend {
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
+                ServiceBootLogger.event("SHIZUKU_ON_DISCONNECTED", "name=$name")
                 if (activeBinding?.connection !== this) {
                     return
                 }
@@ -54,12 +56,14 @@ object ShizukuRemoteServiceConnector : RemoteServiceConnectorBackend {
         activeBinding = binding
 
         runCatching {
+            ServiceBootLogger.event("SHIZUKU_BIND_CALL", "version=${serviceVersion.get()} tag=$serviceTag")
             Timber.i("Binding remote service via Shizuku: %s", args)
             Shizuku.bindUserService(args, connection)
         }.onFailure { throwable ->
             if (activeBinding == binding) {
                 activeBinding = null
             }
+            ServiceBootLogger.event("SHIZUKU_BIND_THROW", "${throwable.javaClass.simpleName}: ${throwable.message}")
             Timber.e(throwable, "bindUserService failed")
             callbacks.onError(backend, throwable)
         }

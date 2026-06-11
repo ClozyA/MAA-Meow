@@ -55,6 +55,7 @@ class RemoteServiceImpl : RemoteService.Stub() {
     }
 
     init {
+        RemoteBootTrace.mark("CTOR_START")
         Runtime.getRuntime().addShutdownHook(Thread {
             runCatching { performEmergencyCleanup() }
         }.apply { name = "remote-shutdown-hook" })
@@ -67,7 +68,10 @@ class RemoteServiceImpl : RemoteService.Stub() {
 
     init {
         startHeartbeatWatchdog()
+        RemoteBootTrace.mark("CTOR_BEFORE_MAA_SERVICE")
         Ln.i("$TAG: RemoteServiceImpl init, version: ${MaaCoreManager.maaService.GetVersion()}")
+        RemoteBootTrace.mark("CTOR_AFTER_MAA_SERVICE")
+        RemoteBootTrace.mark("CTOR_DONE")
     }
 
     override fun destroy() {
