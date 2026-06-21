@@ -999,7 +999,7 @@
 
     <!-- panel: recruit -->
     <string name="panel_recruit_use_expedited">自动使用加急许可</string>
-    <string name="panel_recruit_use_expedited_tip">此选项不会被保存，每次任务开始前需重新勾选</string>
+    <string name="panel_recruit_use_expedited_tip">该选项仅生效一次。\n招募券获取速度低于消耗速度，正常情况下下一轮公招任务时自然已到招募时间，仅在招募券严重溢出等应急场景下使用</string>
     <string name="panel_recruit_max_times_title">招募次数</string>
     <string name="panel_recruit_max_times_desc">单次任务最多进行的公招次数</string>
     <string name="panel_recruit_extra_tags_strategy">公招多选 Tag 的策略</string>

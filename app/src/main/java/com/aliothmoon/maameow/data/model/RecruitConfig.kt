@@ -271,7 +271,8 @@ data class RecruitConfig(
             put("recruitment_time", buildJsonObject {
                 put("3", getChooseLevel3TotalMinutes())
                 put("4", getChooseLevel4TotalMinutes())
-                put("5", getChooseLevel5TotalMinutes())
+                // 对齐上游 v6.13.0-beta.1：5 星时间锁死 9:00，不再读 chooseLevel5Hour/Min
+                put("5", 540)
             })
         }
 

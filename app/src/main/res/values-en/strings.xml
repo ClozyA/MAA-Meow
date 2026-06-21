@@ -946,7 +946,7 @@
 
     <!-- panel: recruit -->
     <string name="panel_recruit_use_expedited">Auto-use expedited plans</string>
-    <string name="panel_recruit_use_expedited_tip">This option is not saved and must be checked again before each run</string>
+    <string name="panel_recruit_use_expedited_tip">Effective once only.\nRecruitment permits are consumed faster than acquired; normally the timer expires before the next recruit task runs. Use only in emergencies such as severe permit overflow</string>
     <string name="panel_recruit_max_times_title">Recruit Max Times</string>
     <string name="panel_recruit_max_times_desc">Maximum number of recruitments per task run</string>
     <string name="panel_recruit_extra_tags_strategy">Strategy for Additional Tags</string>

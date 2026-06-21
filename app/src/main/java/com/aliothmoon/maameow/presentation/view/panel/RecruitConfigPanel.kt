@@ -690,15 +690,11 @@ private fun ChooseLevel5Section(
             )
         }
 
+        // 对齐上游 v6.13.0-beta.1：5 星时间锁死 9:00，不再允许编辑
         RecruitTimeSelector(
-            enabled = config.chooseLevel5,
-            totalMinutes = config.chooseLevel5Hour * 60 + config.chooseLevel5Min,
-            onTimeChange = { total ->
-                onConfigChange(config.copy(
-                    chooseLevel5Hour = total / 60,
-                    chooseLevel5Min = total % 60
-                ))
-            }
+            enabled = false,
+            totalMinutes = 540,
+            onTimeChange = {}
         )
     }
 }

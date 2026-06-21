@@ -110,7 +110,8 @@ fun RecruitCalcPanel(
                 5 -> config.level5Time
                 else -> 540
             }
-            val timeEnabled = level != 6
+            // 对齐上游 v6.13.0-beta.1：5/6 星时间固定 9:00
+            val timeEnabled = level < 5
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
