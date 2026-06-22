@@ -8,9 +8,9 @@ import android.os.Process
 import android.provider.OpenableColumns
 import android.util.DisplayMetrics
 import android.view.WindowManager
-import kotlin.system.exitProcess
 import androidx.core.net.toUri
 import timber.log.Timber
+import kotlin.system.exitProcess
 
 object Misc {
 
