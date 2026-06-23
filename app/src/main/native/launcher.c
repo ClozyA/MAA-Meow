@@ -197,7 +197,7 @@ static void exec_app_process(const LauncherArgs *args) {
 /* ── main ── */
 
 int main(int argc, char **argv) {
-    LauncherArgs args;
+    LauncherArgs args = {0};
 
     if (!parse_args(argc, argv, &args)) {
         LOGE("Missing required launcher args");
